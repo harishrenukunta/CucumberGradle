@@ -19,9 +19,16 @@ public class CalculatorStepDefs extends BaseStep{
         System.out.println("Step defs:User has access to calculator");
     }
 
-    @When("^add (.*) and (.*)$")
-    public void addTwoNumber(final int a, final int b){
-        result = calculatorService.add(a, b);
+    @When("^(add|substract) (.*) and (.*)$")
+    public void addTwoNumber(final String operation, final int a, final int b){
+        switch(operation){
+            case "add":
+                result = calculatorService.add(a, b);
+                break;
+            case "substract":
+                result = calculatorService.substract(a, b);
+                break;
+        }
     }
 
     @Then("verify addition of two numbers in calculator is {int}")

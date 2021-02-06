@@ -1,5 +1,6 @@
 package com.harish.stepdefs;
 
+import com.harish.enums.Operation;
 import com.harish.services.CalculatorService;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -19,15 +20,23 @@ public class CalculatorStepDefs extends BaseStep{
         System.out.println("Step defs:User has access to calculator");
     }
 
-    @When("^(add|substract) (.*) and (.*)$")
-    public void addTwoNumber(final String operation, final int a, final int b){
+    @When("{operation} {int} and {int}")
+    public void addTwoNumber(final Operation operation, final Integer a, final Integer b){
         switch(operation){
-            case "add":
+            case ADD:
                 result = calculatorService.add(a, b);
                 break;
-            case "substract":
+            case SUBSTRACT:
                 result = calculatorService.substract(a, b);
                 break;
+            case MULTIPLY:
+                result = calculatorService.multiply(a, b);
+                break;
+            case DIVIDE:
+                result = calculatorService.divide(a, b);
+                break;
+            default:
+                throw new RuntimeException(String.format("No support for operation '%s'. Please check", operation.getOp()));
         }
     }
 

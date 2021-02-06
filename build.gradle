@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    testCompile 'org.codehaus.groovy:groovy-all:2.3.11'
+    testImplementation 'org.codehaus.groovy:groovy-all:2.3.11'
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-test
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.4.2'
     testImplementation group: 'junit', name: 'junit', version: '4.12'
@@ -26,10 +26,34 @@ dependencies {
     testImplementation group: 'io.cucumber', name: 'cucumber-spring', version: '6.9.1'
 }
 
-test {
-    useJUnitPlatform()
+configurations {
+    cucumberRuntime {
+        extendsFrom testImplementation
+    }
 }
-task regressionTests(type: Test) {
-    SystemProperties systemProperties;
-    include '**/CucumberRunner*';
+
+test {
+    useJUnit {
+        include {'com.harish.runner.CucumberRunner'}
+    }
+}
+
+//Use this gradle tasks if you want to run cucumber via junit test
+task cucumberTests(type: JavaExec){
+    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.test.runtimeClasspath
+    main = "org.junit.runner.JUnitCore"
+    args = ['com.harish.runner.CucumberRunner']
+}
+
+//Use this gradle task if you want to run cucumber via cucumber cliMain
+task cucumber() {
+    dependsOn assemble, testClasses
+    doLast {
+        javaexec {
+            main = "io.cucumber.core.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+            args = ['--plugin', 'pretty', '--plugin','json:target/cucumberReports/json','--glue', 'com.harish.stepdefs', 'src/test/resources/features']
+        }
+    }
 }

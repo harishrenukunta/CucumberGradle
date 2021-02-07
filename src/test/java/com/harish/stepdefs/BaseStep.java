@@ -1,9 +1,10 @@
 package com.harish.stepdefs;
 
 import io.cucumber.spring.CucumberContextConfiguration;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 
 @CucumberContextConfiguration
-@ContextConfiguration(classes = {com.harish.Config.TestConfig.class})
+@SpringBootTest(classes = {com.harish.Config.TestConfig.class})
+//@ContextConfiguration(classes = {com.harish.Config.TestConfig.class}) - application.properties will not be accessible
 public class BaseStep {
 }

@@ -6,18 +6,22 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RequiredArgsConstructor
-public class CalculatorStepDefs extends BaseStep{
+public class CalculatorStepDefs  extends BaseStep{
 
     private final CalculatorService calculatorService;
+    @Value("${remote.host}")
+    private String remoteHost;
     private int result;
 
     @Given("^user has access to calculator$")
     public void givenUserHasAccess(){
-        System.out.println("Step defs:User has access to calculator");
+        System.out.println("Step defs:User has access to calculator:" + remoteHost);
     }
 
     @When("{operation} {int} and {int}")

@@ -1,10 +1,17 @@
 package com.harish.stepdefs;
 
 import io.cucumber.java.*;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 
 @Slf4j
 public class CucumberSteps {
+
+    @Value("${rest.api.host}")
+    private String serverBaseUrl;
 
     @BeforeStep
     public void beforeStep(){
@@ -19,6 +26,9 @@ public class CucumberSteps {
     @Before
     public void beforeScenario(final Scenario scenario){
         log.info("Step def: before Scenario:" + scenario.getName());
+        RestAssured.baseURI = serverBaseUrl;
+        //Below line is used to print request and response
+        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
     }
 
     @After

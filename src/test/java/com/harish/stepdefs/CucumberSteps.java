@@ -29,6 +29,7 @@ public class CucumberSteps {
         RestAssured.baseURI = serverBaseUrl;
         //Below line is used to print request and response
         RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
     @After

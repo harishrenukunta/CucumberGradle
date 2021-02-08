@@ -6,8 +6,6 @@ import com.harish.services.PostServiceImpl;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.cucumber.messages.internal.com.google.gson.Gson;
-import io.restassured.response.Response;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
 

@@ -26,7 +26,7 @@ public class PostStepDefs extends BaseStep {
 
     @Then("post service api call should be successful")
     public void postCallIsSuccessful(){
-        assertThat(postServiceResponse.getResponse())
+        assertThat(postServiceResponse.response())
                 .as("Posts get service call is successful")
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.SC_OK);
@@ -34,7 +34,7 @@ public class PostStepDefs extends BaseStep {
 
     @Then("user add post api call is successful")
     public void addPostCallIsSuccessful(){
-        assertThat(postServiceResponse.getResponse())
+        assertThat(postServiceResponse.response())
                 .as("Add post is successful")
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.SC_CREATED);
@@ -48,7 +48,7 @@ public class PostStepDefs extends BaseStep {
 
     @And("posts should be retrieved")
     public void assertPostsAreRetrieved(){
-        List<Post> posts  = postServiceResponse.getPosts();//new Gson().fromJson(postServiceResponse.getResponse().asString(), Post[].class);
+        List<Post> posts  = postServiceResponse.getPosts();
         assertThat(posts)
                 .as("Post service should send posts")
                 .isNotEmpty();

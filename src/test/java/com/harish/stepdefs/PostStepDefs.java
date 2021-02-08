@@ -1,6 +1,7 @@
 package com.harish.stepdefs;
 
 import com.harish.models.Post;
+import com.harish.response.PostServiceResponse;
 import com.harish.services.PostServiceImpl;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
@@ -18,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PostStepDefs extends BaseStep {
 
     private final PostServiceImpl postService;
-    private Response postServiceResponse;
+    private PostServiceResponse postServiceResponse;
 
     @When("retrieve all posts")
     public void retrieveAllPosts() {
@@ -27,7 +28,7 @@ public class PostStepDefs extends BaseStep {
 
     @Then("post service api call should be successful")
     public void postCallIsSuccessful(){
-        assertThat(postServiceResponse)
+        assertThat(postServiceResponse.getResponse())
                 .as("Posts get service call is successful")
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.SC_OK);
@@ -35,7 +36,7 @@ public class PostStepDefs extends BaseStep {
 
     @Then("user add post api call is successful")
     public void addPostCallIsSuccessful(){
-        assertThat(postServiceResponse)
+        assertThat(postServiceResponse.getResponse())
                 .as("Add post is successful")
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.SC_CREATED);
@@ -49,7 +50,7 @@ public class PostStepDefs extends BaseStep {
 
     @And("posts should be retrieved")
     public void assertPostsAreRetrieved(){
-        Post[] posts  = new Gson().fromJson(postServiceResponse.asString(), Post[].class);
+        List<Post> posts  = postServiceResponse.getPosts();//new Gson().fromJson(postServiceResponse.getResponse().asString(), Post[].class);
         assertThat(posts)
                 .as("Post service should send posts")
                 .isNotEmpty();

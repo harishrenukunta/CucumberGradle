@@ -18,5 +18,5 @@ Feature: User should be able to perform operations
       | Scenario                   | operation | firstOperand | secondOperand | result |
       | Verify add operation       | add       | 6            | 11            | 17     |
       | Verify substract operation | substract | 8            | 1             | 7      |
-      | Verify multiply operation  | multiply  | 3            | 4             | 12     |
-      | Verify divide operation    | divide    | 25           | 5             | 5      |
+#      | Verify multiply operation  | multiply  | 3            | 4             | 12     |
+#      | Verify divide operation    | divide    | 25           | 5             | 5      |

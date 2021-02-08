@@ -1,6 +1,7 @@
 package com.harish.stepdefs;
 
 import com.harish.enums.Operation;
+import com.harish.framework.ScenarioContext;
 import com.harish.services.CalculatorService;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -15,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CalculatorStepDefs  extends BaseStep{
 
     private final CalculatorService calculatorService;
+    private final ScenarioContext sc;
     @Value("${remote.host}")
     private String remoteHost;
     private int result;
@@ -22,6 +24,7 @@ public class CalculatorStepDefs  extends BaseStep{
     @Given("^user has access to calculator$")
     public void givenUserHasAccess(){
         System.out.println("Step defs:User has access to calculator:" + remoteHost);
+        sc.increment();
     }
 
     @When("{operation} {int} and {int}")

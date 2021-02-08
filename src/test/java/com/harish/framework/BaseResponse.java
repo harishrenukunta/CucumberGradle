@@ -18,7 +18,8 @@ public class BaseResponse {
     }
 
     public <T> T fromJson(Class<T> clazz){
-        return new Gson().fromJson(response.asString(), clazz);
+        //return new Gson().fromJson(response.asString(), clazz);
+        return response.as(clazz);
     }
 
 }

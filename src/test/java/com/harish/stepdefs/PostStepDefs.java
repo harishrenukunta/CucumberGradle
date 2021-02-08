@@ -38,7 +38,6 @@ public class PostStepDefs extends BaseStep {
                 .as("Add post is successful")
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.SC_CREATED);
-
     }
 
     @When("user adds a post")
@@ -48,7 +47,7 @@ public class PostStepDefs extends BaseStep {
 
     @And("posts should be retrieved")
     public void assertPostsAreRetrieved(){
-        List<Post> posts  = postServiceResponse.getPosts();
+        final List<Post> posts  = postServiceResponse.getPosts();
         assertThat(posts)
                 .as("Post service should send posts")
                 .isNotEmpty();

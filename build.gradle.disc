@@ -1,0 +1,258 @@
+import com.sun.javafx.runtime.SystemProperties
+
+//This part is for including gradle cloudfoundry plugin,
+// so we can deploy and manage apps with Gradle tasks
+
+buildscript {
+    ext {
+        springBootVersion = '2.1.4.RELEASE'
+    }
+    repositories{
+        maven { url nexusPublicRepoURL }
+        maven { url nexusReleaseRepoURL }
+        maven { url nexusLocalRepoURL }
+        maven { url nexusSnapshotRepoURL }
+        //mavenCentral()
+    }
+
+    dependencies{
+    testImplementation 'org.codehaus.groovy:groovy-all:3.0.0'
+        testCompileOnly 'org.projectlombok:lombok:1.18.16'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+        testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.4.2'
+        testImplementation group: 'junit', name: 'junit', version: '4.12'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+        testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '4.3.3'
+        testImplementation group: 'io.rest-assured', name: 'json-path', version: '4.3.3'
+        testImplementation group: 'io.rest-assured', name: 'json-schema-validator', version: '4.3.3'
+        testImplementation group: 'io.cucumber', name: 'cucumber-java', version: '6.9.1'
+        testImplementation group: 'io.cucumber', name: 'cucumber-junit', version: '6.9.1'
+        testImplementation group: 'io.cucumber', name: 'cucumber-spring', version: '6.9.1'
+
+    }
+}
+
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'java'
+apply plugin: 'org.snarqube'
+apply plugin: 'cloudfoundry'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'application'
+mainClassName = 'org.junit.runner.JUnitCore'
+
+dependencyManagement {
+    //We need to investigate this to tidy-up the dependencies
+}
+
+ apply plugin: 'eclipse'
+ apply plugin: 'maven'
+ apply plugin: 'maven-publish'
+ apply plugin: 'jacoco'
+
+ repositories {
+
+        maven { url nexusPublicRepoURL }
+        maven { url nexusReleaseRepoURL }
+         maven { url nexusLocalRepoURL }
+        maven { url nexusSnapshotRepoURL }
+        //mavenCentral()
+ }
+
+ group = myGroup
+ version = myVersion
+
+ sourceCompatibility = mySourceCompatibility
+ targetCompatibility = mySourceCompatibility
+
+ dependencies {
+    testCompile 'com.discover.cpp.commmon.framework':common-rest-client:3.0.4'
+    {
+        exclude group:'org.slf4j', module:'slf4j-api'
+        exclude group:'com.dcisc.common.framework', module:'common-model'
+    }
+ }
+
+ configurations {
+    runtime.exclude group: "org.slf4j", module: "log4j-over-slf4j"
+    all*.exclude group:"org.slf4j",module:"slf4j-simple"
+ }
+
+ javadoc { failOnError = false }
+
+ //*Gradle task to jar source
+ task sourcesJar(type: Jar, dependsOn: classes){
+    classifier = 'sources'
+    from sourceSets.main.allSource
+ }
+
+ //*add new tasks to artifacts
+ artifacts {
+    archives sourcesJar
+ }
+
+ test {
+    systemProperty "spring.profiles.active", "default"
+    exclude 'com/discover/sit/**'
+ }
+
+ sonarqube {
+    properties {
+        property "sonar.junit.reportsPath", "${project.buildDir}/jacoco/test.exec"
+        property "sonar.exclusions", "**/com/discover/ecmconentsrvice/wsdl/*"
+        property "sonar.host.url", "https;//sonarqube.discoverfinancial.com:8443/"
+        property "sonar.projectKey", "com.discover.epp:epp-system-qe"
+        property "sonar.projectName", "epp-system-qe"
+        property "sonar.projectDescription", "Comman sit repo"
+        property "sonar.sourceEncoding", "UTF-8"
+        property "sonar.sources", "src/main/java"
+        property "sonar.test", "src/test/java"
+    }
+
+    jacoco {
+        toolVersion = "0.7.1.2014050082137"
+        reportsDir = file("$buildDir/customJacocoReportDir")
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled false
+            csv.enabled false
+            group = "Reporting"
+            description = "Generate Jacoco coverage reports after running tests."
+            additionalSourceDirs = files(sourceSts.main.allJava.srcDirs)
+            html.destination file("${buildDir}/jacocoHtml"
+        }
+    }
+
+    //*
+    //*enhances the Gradle uploadArchives task to inject nexus username and passwords
+    //*
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(url: nexusReleaseRepoURL){
+                    authentication(userName: nexusUsername, password: nexusPassword)
+                }
+                snapshotRepsitor(url: nexusSnapshotRepoURL){
+                    authentication(userName: nexusUsername, password: nexusPassword)
+                }
+            }
+        }
+    }
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    task eTR(type: JavaExec){
+        classpath = sourceSets.main.runtimeClasspath + sourceSets.test.runtimeClasspath
+        main = 'org.junit.runner.JUnitCore'
+        args = ['com.discover.sit.runners.TestRunner']
+        systemProperties = System.properties
+    }
+
+    task eTRSoap(type: JavaExec){
+        systemProperty "spring.profiles.active", System.getProperty("test.environment")
+        systemProperty "cucumber.options", system.getProperty("cucumber.options")
+        classpath = sourceSets.main.runtimeClasspath + sourceSets.test.runtimeClasspath
+        main = 'org.junit.runner.JunitCore'
+        args = ['com.discover.sit.runners.SoapInboundAdapterTestRunner']
+    }
+
+    applicationDefaultJvmArgs = ["-Duser.timezone=UTC", "-Dspring.profiles.active=default"]
+
+    import org.gradle.internal.os.OperatingSystem
+
+    if (Operatingsystem.current().isWindows()) {
+        task pathingJar(type: Jar){
+            dependsOn configurations.runtime
+            appendix = 'pathing'
+
+            doFirst{
+                manifest {
+                    //Build the Class-Path for absolute paths based on runtime dependencies
+                    attribute "Class-Path": configurations.runtime.files.collect {
+                        it.toURL().toString().replaceFirst(/file:\/+/, '/')
+                    }.join(' ')
+                }
+            }
+        }
+
+        bootRun {
+            dependsOn pathingJar
+            doFirst {
+                classpath = files("$buildDir/classes/main", "$buildDir/resources/main", pathingJar.archivePath)
+            }
+        }
+
+        run {
+            dependsOn pathingJar
+            doFirst {
+                lasspath = files("$buildDir/classes/main", "$buildDir/resources/main", pathingJar.archivePath )
+            }
+        }
+    }
+ }
+
+
+ }
+
+plugins {
+    id 'groovy'
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.codehaus.groovy:groovy-all:3.0.0'
+    testCompileOnly 'org.projectlombok:lombok:1.18.16'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.4.2'
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '4.3.3'
+    testImplementation group: 'io.rest-assured', name: 'json-path', version: '4.3.3'
+    testImplementation group: 'io.rest-assured', name: 'json-schema-validator', version: '4.3.3'
+    testImplementation group: 'io.cucumber', name: 'cucumber-java', version: '6.9.1'
+    testImplementation group: 'io.cucumber', name: 'cucumber-junit', version: '6.9.1'
+    testImplementation group: 'io.cucumber', name: 'cucumber-spring', version: '6.9.1'
+}
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testImplementation
+    }
+}
+
+test {
+    useJUnit {
+        include {'com.harish.runner.CucumberRunner'}
+    }
+}
+
+//Use this gradle tasks if you want to run cucumber via junit test
+task cucumberTests(type: JavaExec){
+    classpath = sourceSets.main.runtimeClasspath + sourceSets.test.runtimeClasspath
+    main = "org.junit.runner.JUnitCore"
+    args = ['com.harish.runner.CucumberRunner']
+}
+
+//Use this gradle task if you want to run cucumber via cucumber cliMain
+task cucumber() {
+    dependsOn assemble, testClasses
+    doLast {
+        javaexec {
+            main = "io.cucumber.core.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+            args = ['--plugin', 'pretty', '--plugin','json:target/cucumberReports/json','--glue', 'com.harish.stepdefs', 'src/test/resources/features']
+        }
+    }
+}

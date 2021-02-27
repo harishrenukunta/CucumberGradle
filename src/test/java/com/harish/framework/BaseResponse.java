@@ -1,9 +1,7 @@
 package com.harish.framework;
 
-import io.cucumber.messages.internal.com.google.gson.Gson;
 import io.restassured.response.Response;
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
